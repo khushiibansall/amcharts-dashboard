@@ -12,7 +12,8 @@ import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 })
 export class ChartUploaderComponent implements OnDestroy {
   private root!: am5.Root;
-  private apiUrl = 'https://run.mocky.io/v3/a7a5a1d3-93a5-458d-aef3-f57a8cd934b9'; // 🛑 Replace this
+  // private apiUrl = 'https://run.mocky.io/v3/a7a5a1d3-93a5-458d-aef3-f57a8cd934b9'; 
+  private apiUrl = 'http://localhost:3000/data'; // 👈 now using your Node backend
 
   constructor(private http: HttpClient) {
     this.fetchChartData(); // fetch on component load
