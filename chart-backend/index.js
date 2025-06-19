@@ -2,26 +2,26 @@
 
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
 
-// Enable CORS so Angular can access this API
 app.use(cors());
 
-// Sample chart data (you can replace this with DB or file read later)
-const chartData = [
-  { country: 'USA', value: 2025 },
-  { country: 'India', value: 1000 },
-  { country: 'China', value: 1882 },
-  { country: 'Germany', value: 1322 },
-  { country: 'UK', value: 1122 },
-  { country: 'France', value: 1114 }
-];
+// Optional root route to avoid "Cannot GET /"
+app.get('/', (req, res) => {
+  res.send('🎉 Welcome to the Chart Backend! Visit /data to see the chart data.');
+});
 
-// GET route to serve data
+// GET route that reads from data.json file
 app.get('/data', (req, res) => {
-  res.json(chartData);
+  try {
+    const data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read data.json' });
+  }
 });
 
 app.listen(PORT, () => {
