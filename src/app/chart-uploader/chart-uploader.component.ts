@@ -1,4 +1,5 @@
-import { Component, AfterViewInit, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnDestroy } from '@angular/core';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
@@ -9,65 +10,23 @@ import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
   templateUrl: './chart-uploader.component.html',
   styleUrls: ['./chart-uploader.component.css'],
 })
-export class ChartUploaderComponent implements AfterViewInit, OnDestroy {
+export class ChartUploaderComponent implements OnDestroy {
   private root!: am5.Root;
+  private apiUrl = 'https://run.mocky.io/v3/a7a5a1d3-93a5-458d-aef3-f57a8cd934b9'; // 🛑 Replace this
 
-  ngAfterViewInit() {
-    this.createChart(this.defaultData);
+  constructor(private http: HttpClient) {
+    this.fetchChartData(); // fetch on component load
   }
 
-  defaultData = [
-    { country: 'USA', value: 2025 },
-    { country: 'China', value: 1882 },
-    { country: 'Japan', value: 1809 },
-    { country: 'Germany', value: 1322 },
-    { country: 'UK', value: 1122 },
-    { country: 'France', value: 1114 },
-    { country: 'India', value: 984 },
-    { country: 'Spain', value: 711 },
-    { country: 'Netherlands', value: 665 },
-    { country: 'South Korea', value: 443 },
-    { country: 'Canada', value: 441 },
-  ];
-
-  handleFileInput(event: any) {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const content = reader.result as string;
-
-      let data: any[] = [];
-
-      if (file.name.endsWith('.json')) {
-        try {
-          data = JSON.parse(content);
-        } catch {
-          alert('Invalid JSON file.');
-          return;
-        }
-      } else if (file.name.endsWith('.csv')) {
-        const lines = content.trim().split('\n');
-        const [header, ...rows] = lines;
-
-        const [countryKey, valueKey] = header.split(',');
-
-        data = rows.map((line) => {
-          const [country, value] = line.split(',');
-          return { [countryKey.trim()]: country.trim(), [valueKey.trim()]: +value.trim() };
-        });
-      }
-
-      this.createChart(data);
-    };
-
-    reader.readAsText(file);
+  fetchChartData() {
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: (data) => this.createChart(data),
+      error: () => alert('Failed to load data from API.'),
+    });
   }
 
   createChart(data: any[]) {
-    if (this.root) {
-      this.root.dispose();
-    }
+    if (this.root) this.root.dispose();
 
     let root = am5.Root.new('chartdiv');
     this.root = root;
