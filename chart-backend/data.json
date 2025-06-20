@@ -1,22 +1,30 @@
 [
   {
-    "country": "China",
-    "value": 1882
+    "timestamp": 1718539800000,
+    "value": 98.5
   },
   {
-    "country": "Germany",
-    "value": 1322
+    "timestamp": 1718543400000,
+    "value": 99.1
   },
   {
-    "country": "Japan",
-    "value": 1999
+    "timestamp": 1718547000000,
+    "value": 100.3
   },
   {
-    "country": "Brazil",
-    "value": 800
+    "timestamp": 1718550600000,
+    "value": 101
   },
   {
-    "country": "Italy",
-    "value": 1100
+    "timestamp": 1718554200000,
+    "value": 102.2
+  },
+  {
+    "timestamp": 1718557800000,
+    "value": 101.8
+  },
+  {
+    "timestamp": 1718561400000,
+    "value": 103
   }
 ]

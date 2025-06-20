@@ -7,5 +7,14 @@
 
 <hr />
 
-<!-- The chart -->
-<div id="chartdiv" style="width: 100%; height: 500px;"></div>
+<div>
+  <label for="chartType">Chart Type:</label>
+  <select id="chartType" [(ngModel)]="chartType" (change)="onChartTypeChange()">
+    <option value="bar">Bar</option>
+    <option value="line">Line</option>
+    <option value="pie">Pie</option>
+  </select>
+</div>
+
+<!-- Chart appears below -->
+<div id="chartdiv" style="width: 100%; height: 500px; margin-top: 20px;"></div>
