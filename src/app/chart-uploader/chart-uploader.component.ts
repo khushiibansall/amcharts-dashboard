@@ -3,20 +3,23 @@ import { Component, OnDestroy } from '@angular/core';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import { FormsModule } from '@angular/forms'; // 👈 Needed for ngModel
 
 @Component({
   selector: 'app-chart-uploader',
   standalone: true,
+  imports: [FormsModule], // 👈 include FormsModule here
   templateUrl: './chart-uploader.component.html',
   styleUrls: ['./chart-uploader.component.css'],
 })
 export class ChartUploaderComponent implements OnDestroy {
   private root!: am5.Root;
-  // private apiUrl = 'https://run.mocky.io/v3/a7a5a1d3-93a5-458d-aef3-f57a8cd934b9'; 
   private apiUrl = 'http://localhost:3000/data';
 
+  jsonInput: string = ''; // 👈 bind to textarea
+
   constructor(private http: HttpClient) {
-    this.fetchChartData(); // fetch on component load
+    this.fetchChartData();
   }
 
   fetchChartData() {
@@ -26,9 +29,26 @@ export class ChartUploaderComponent implements OnDestroy {
     });
   }
 
+  submitData() {
+    let parsed;
+    try {
+      parsed = JSON.parse(this.jsonInput);
+    } catch (e) {
+      alert('Invalid JSON');
+      return;
+    }
+
+    this.http.post(this.apiUrl, parsed).subscribe({
+      next: () => {
+        alert('✅ Data uploaded!');
+        this.fetchChartData(); // re-render chart with new data
+      },
+      error: () => alert('❌ Failed to upload data'),
+    });
+  }
+
   createChart(data: any[]) {
     if (this.root) this.root.dispose();
-
     let root = am5.Root.new('chartdiv');
     this.root = root;
 
@@ -117,8 +137,6 @@ export class ChartUploaderComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.root) {
-      this.root.dispose();
-    }
+    if (this.root) this.root.dispose();
   }
 }

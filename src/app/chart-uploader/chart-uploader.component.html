@@ -1,11 +1,11 @@
-<!-- <div class="uploader">
-  <input type="file" (change)="handleFileInput($event)" accept=".json,.csv" />
-</div> -->
-
-<div id="chartdiv" style="width: 100%; height: 500px;"></div>
-
-<div>
-  <button (click)="fetchChartData()">Load Chart from API</button>
+<div class="form-section">
+  <h3>Upload Chart Data (JSON)</h3>
+  <textarea [(ngModel)]="jsonInput" rows="10" cols="50"></textarea>
+  <br />
+  <button (click)="submitData()">Submit Data to Backend</button>
 </div>
 
+<hr />
+
+<!-- The chart -->
 <div id="chartdiv" style="width: 100%; height: 500px;"></div>

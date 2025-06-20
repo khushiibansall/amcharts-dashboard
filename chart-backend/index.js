@@ -1,5 +1,3 @@
-// index.js
-
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -8,19 +6,31 @@ const app = express();
 const PORT = 3000;
 
 app.use(cors());
+app.use(express.json()); // 👈 to parse JSON bodies
 
-// Optional root route to avoid "Cannot GET /"
+// Show a message at root
 app.get('/', (req, res) => {
-  res.send('🎉 Welcome to the Chart Backend! Visit /data to see the chart data.');
+  res.send('🎉 Welcome to the Chart Backend!');
 });
 
-// GET route that reads from data.json file
+// GET: Send chart data
 app.get('/data', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to read data.json' });
+    res.status(500).json({ error: 'Could not read data.json' });
+  }
+});
+
+// ✅ POST: Receive new chart data from Angular
+app.post('/data', (req, res) => {
+  const newData = req.body;
+  try {
+    fs.writeFileSync('data.json', JSON.stringify(newData, null, 2));
+    res.status(200).json({ message: 'Data saved successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to write to data.json' });
   }
 });
 

@@ -1,6 +1,22 @@
 [
-  { "country": "USA", "value": 2025 },
-  { "country": "India", "value": 1000 },
-  { "country": "China", "value": 1882 },
-  { "country": "Germany", "value": 1322 }
+  {
+    "country": "China",
+    "value": 1882
+  },
+  {
+    "country": "Germany",
+    "value": 1322
+  },
+  {
+    "country": "Japan",
+    "value": 1999
+  },
+  {
+    "country": "Brazil",
+    "value": 800
+  },
+  {
+    "country": "Italy",
+    "value": 1100
+  }
 ]
