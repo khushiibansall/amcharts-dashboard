@@ -29,11 +29,11 @@ export class ChartUploaderComponent implements OnDestroy {
   fetchChartData() {
     this.http.get<any[]>(this.apiUrl).subscribe({
       next: (data) => this.createChart(data),
-      error: () => alert('❌ Failed to load data from backend'),
+      error: () => alert(' Failed to load data from backend'),
     });
   }
 
-  // Handle dropdown change
+  
   onChartTypeChange() {
     this.fetchChartData();
   }
@@ -47,10 +47,10 @@ export class ChartUploaderComponent implements OnDestroy {
           alert('✅ Data uploaded successfully!');
           this.fetchChartData();
         },
-        error: () => alert('❌ Failed to upload data'),
+        error: () => alert(' Failed to upload data'),
       });
     } catch (err) {
-      alert('❌ Invalid JSON format');
+      alert(' Invalid JSON format');
     }
   }
 
