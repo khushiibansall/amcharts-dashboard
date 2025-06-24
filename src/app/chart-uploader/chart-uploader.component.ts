@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import * as am5percent from '@amcharts/amcharts5/percent';
+import * as am5plugins_exporting from '@amcharts/amcharts5/plugins/exporting';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 @Component({
@@ -20,29 +21,31 @@ export class ChartUploaderComponent implements OnDestroy {
 
   chartType = 'bar'; // default chart type
   jsonInput: string = '';
+  processedData: any[] = [];
 
   constructor(private http: HttpClient) {
     this.fetchChartData();
   }
 
-  // Fetch data from backend
   fetchChartData() {
     this.http.get<any[]>(this.apiUrl).subscribe({
-      next: (data) => this.createChart(data),
+      next: (data) => {
+        this.processedData = this.normalizeData(data);
+        this.createChart(this.processedData);
+      },
       error: () => alert(' Failed to load data from backend'),
     });
   }
 
-  
   onChartTypeChange() {
-    this.fetchChartData();
+    this.createChart(this.processedData);
   }
 
-  // POST new data to backend
   submitData() {
     try {
       const parsed = JSON.parse(this.jsonInput);
-      this.http.post(this.apiUrl, parsed).subscribe({
+      const normalized = this.normalizeData(parsed);
+      this.http.post(this.apiUrl, normalized).subscribe({
         next: () => {
           alert('✅ Data uploaded successfully!');
           this.fetchChartData();
@@ -54,11 +57,25 @@ export class ChartUploaderComponent implements OnDestroy {
     }
   }
 
-  // Create the chart depending on type
+  normalizeData(data: any[]): any[] {
+    return data.map((item, i) => {
+      return {
+        category: item.category || item.country || item.label || `Item ${i + 1}`,
+        value: item.value,
+        timestamp: item.timestamp || Date.now() + i * 60000,
+      };
+    });
+  }
+
   createChart(data: any[]) {
     if (this.root) this.root.dispose();
     this.root = am5.Root.new('chartdiv');
     this.root.setThemes([am5themes_Animated.new(this.root)]);
+
+    // Add export menu
+    am5plugins_exporting.Exporting.new(this.root, {
+      menu: am5plugins_exporting.ExportingMenu.new(this.root, {})
+    });
 
     switch (this.chartType) {
       case 'bar':
@@ -75,7 +92,6 @@ export class ChartUploaderComponent implements OnDestroy {
     }
   }
 
-  // BAR CHART
   drawBarChart(data: any[]) {
     const chart = this.root.container.children.push(
       am5xy.XYChart.new(this.root, {
@@ -87,9 +103,11 @@ export class ChartUploaderComponent implements OnDestroy {
       })
     );
 
+    chart.set("scrollbarX", am5.Scrollbar.new(this.root, { orientation: "horizontal" }));
+
     const xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(this.root, {
-        categoryField: 'country',
+        categoryField: 'category',
         renderer: am5xy.AxisRendererX.new(this.root, {}),
         tooltip: am5.Tooltip.new(this.root, {}),
       })
@@ -98,6 +116,7 @@ export class ChartUploaderComponent implements OnDestroy {
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(this.root, {
         renderer: am5xy.AxisRendererY.new(this.root, {}),
+        min: 0,
       })
     );
 
@@ -107,12 +126,15 @@ export class ChartUploaderComponent implements OnDestroy {
         xAxis,
         yAxis,
         valueYField: 'value',
-        categoryXField: 'country',
+        categoryXField: 'category',
         tooltip: am5.Tooltip.new(this.root, {
           labelText: '{valueY}',
         }),
       })
     );
+
+    let legend = chart.children.push(am5.Legend.new(this.root, {}));
+    legend.data.setAll(chart.series.values);
 
     xAxis.data.setAll(data);
     series.data.setAll(data);
@@ -120,7 +142,6 @@ export class ChartUploaderComponent implements OnDestroy {
     chart.appear(1000, 100);
   }
 
-  // LINE CHART
   drawLineChart(data: any[]) {
     const chart = this.root.container.children.push(
       am5xy.XYChart.new(this.root, {
@@ -131,6 +152,8 @@ export class ChartUploaderComponent implements OnDestroy {
         pinchZoomX: true,
       })
     );
+
+    chart.set("scrollbarX", am5.Scrollbar.new(this.root, { orientation: "horizontal" }));
 
     const xAxis = chart.xAxes.push(
       am5xy.DateAxis.new(this.root, {
@@ -143,6 +166,7 @@ export class ChartUploaderComponent implements OnDestroy {
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(this.root, {
         renderer: am5xy.AxisRendererY.new(this.root, {}),
+        min: 0,
       })
     );
 
@@ -159,13 +183,19 @@ export class ChartUploaderComponent implements OnDestroy {
       })
     );
 
+    let legend = chart.children.push(am5.Legend.new(this.root, {}));
+    legend.data.setAll(chart.series.values);
+
+    series.fills.template.setAll({
+      fillOpacity: 0.5,
+      visible: true,
+    });
     xAxis.data.setAll(data);
     series.data.setAll(data);
     series.appear(1000);
     chart.appear(1000, 100);
   }
 
-  // PIE CHART
   drawPieChart(data: any[]) {
     const chart = this.root.container.children.push(
       am5percent.PieChart.new(this.root, {
@@ -184,6 +214,9 @@ export class ChartUploaderComponent implements OnDestroy {
     series.states.create('hidden', {
       endAngle: -90,
     });
+
+    let legend = chart.children.push(am5.Legend.new(this.root, {}));
+    legend.data.setAll(data);
 
     series.data.setAll(data);
     series.appear(1000, 100);
