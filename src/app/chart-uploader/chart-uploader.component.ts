@@ -33,7 +33,7 @@ export class ChartUploaderComponent implements OnDestroy {
         this.processedData = this.normalizeData(data);
         this.createChart(this.processedData);
       },
-      error: () => alert(' Failed to load data from backend'),
+      error: () => alert('Failed to load data from backend'),
     });
   }
 
@@ -48,7 +48,7 @@ export class ChartUploaderComponent implements OnDestroy {
       this.http.post(this.apiUrl, normalized).subscribe({
         //sends to backenf
         next: () => {
-          alert('✅ Data uploaded successfully!');
+          alert('Data uploaded successfully!');
           this.fetchChartData();
         },
         error: () => alert(' Failed to upload data'),
@@ -114,9 +114,6 @@ export class ChartUploaderComponent implements OnDestroy {
       am5xy.CategoryAxis.new(this.root, {
         categoryField: 'category',
         renderer: am5xy.AxisRendererX.new(this.root, {}),
-        tooltip: am5.Tooltip.new(this.root, {
-          labelText: '{valueY}',
-        }),
       })
     );
 
@@ -134,24 +131,27 @@ export class ChartUploaderComponent implements OnDestroy {
         yAxis,
         valueYField: 'value',
         categoryXField: 'category',
-        tooltip: am5.Tooltip.new(this.root, {
-          labelText: '{valueY}',
-        }),
       })
     );
+    // Configure tooltip for the series
+    series.set(
+      'tooltip',
+      am5.Tooltip.new(this.root, {
+        labelText: 'Category: {categoryX}\nValue: {valueY}',
+      })
+    );
+
+    // Configure column template for better interaction
+    series.columns.template.setAll({
+      tooltipText: 'Category: {categoryX}\nValue: {valueY}',
+      cursorOverStyle: 'pointer',
+    });
 
     let legend = chart.children.push(am5.Legend.new(this.root, {}));
     legend.data.setAll(chart.series.values);
 
     xAxis.data.setAll(data); //tells the X-axis which category names to display.
     series.data.setAll(data); //tells the bars how tall to be.
-    
-    series.events.once('datavalidated', () => {
-      const firstBullet = series.bulletsContainer.children.getIndex(0);
-      if (firstBullet) {
-        firstBullet.get('tooltip')?.show();
-      }
-    });
 
     series.appear(1000);
     chart.appear(1000, 100);
@@ -175,16 +175,16 @@ export class ChartUploaderComponent implements OnDestroy {
 
     const xAxis = chart.xAxes.push(
       am5xy.DateAxis.new(this.root, {
-        baseInterval: { timeUnit: 'minute', count: 30 },
-        renderer: am5xy.AxisRendererX.new(this.root, {}),
-        tooltip: am5.Tooltip.new(this.root, {}),
+        baseInterval: { timeUnit: 'minute', count: 1 },
+        renderer: am5xy.AxisRendererX.new(this.root, {
+          minGridDistance: 50,
+        }),
       })
     );
 
     const yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(this.root, {
         renderer: am5xy.AxisRendererY.new(this.root, {}),
-        min: 0,
       })
     );
 
@@ -195,21 +195,61 @@ export class ChartUploaderComponent implements OnDestroy {
         yAxis,
         valueYField: 'value',
         valueXField: 'timestamp',
-        tooltip: am5.Tooltip.new(this.root, {
-          labelText: '{valueY}',
-        }),
+        // connect: false,
+      })
+    );
+
+    // Configure tooltip for the series with better formatting
+    series.set(
+      'tooltip',
+      am5.Tooltip.new(this.root, {
+        labelText: '{categoryX}: {valueY}',
+        pointerOrientation: 'vertical',
+      })
+    );
+
+    // Add bullets to make hover interaction easier
+    const bullet = series.bullets.push(() => {
+      const bulletCircle = am5.Circle.new(this.root, {
+        radius: 5,
+        fill: series.get('fill'),
+        stroke: am5.color('#ffffff'),
+        strokeWidth: 2,
+      });
+      return am5.Bullet.new(this.root, {
+        sprite: bulletCircle,
+      });
+    });
+
+    // Configure stroke for the line
+    series.strokes.template.setAll({
+      strokeWidth: 3,
+    });
+
+    // Add cursor for better interaction
+    chart.set(
+      'cursor',
+      am5xy.XYCursor.new(this.root, {
+        behavior: 'zoomX',
       })
     );
 
     let legend = chart.children.push(am5.Legend.new(this.root, {}));
     legend.data.setAll(chart.series.values);
 
+    // Prepare data with category for better tooltip display
+    const processedData = data.map((item) => ({
+      ...item,
+      categoryX: item.category, // Add categoryX for tooltip
+    }));
+
     series.fills.template.setAll({
       fillOpacity: 0.5,
       visible: true,
     });
-    xAxis.data.setAll(data);
-    series.data.setAll(data);
+
+    xAxis.data.setAll(processedData);
+    series.data.setAll(processedData);
     series.appear(1000);
     chart.appear(1000, 100);
   }

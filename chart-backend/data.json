@@ -1,27 +1,10 @@
 [
   {
-    "category": "Marketing",
-    "value": 500,
-    "timestamp": 1719214800000
-  },
-  {
-    "category": "Sales",
-    "value": 750,
+    "category": "Item 1",
     "timestamp": 1719218400000
   },
   {
-    "category": "Development",
-    "value": 1200,
+    "category": "Item 2",
     "timestamp": 1719222000000
-  },
-  {
-    "category": "Support",
-    "value": 300,
-    "timestamp": 1719225600000
-  },
-  {
-    "category": "Management",
-    "value": 900,
-    "timestamp": 1719229200000
   }
 ]
