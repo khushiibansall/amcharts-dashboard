@@ -43,9 +43,10 @@ export class ChartUploaderComponent implements OnDestroy {
 
   submitData() {
     try {
-      const parsed = JSON.parse(this.jsonInput);
+      const parsed = JSON.parse(this.jsonInput); //convert it into a js obj
       const normalized = this.normalizeData(parsed);
       this.http.post(this.apiUrl, normalized).subscribe({
+        //sends to backenf
         next: () => {
           alert('✅ Data uploaded successfully!');
           this.fetchChartData();
@@ -60,7 +61,8 @@ export class ChartUploaderComponent implements OnDestroy {
   normalizeData(data: any[]): any[] {
     return data.map((item, i) => {
       return {
-        category: item.category || item.country || item.label || `Item ${i + 1}`,
+        category:
+          item.category || item.country || item.label || `Item ${i + 1}`,
         value: item.value,
         timestamp: item.timestamp || Date.now() + i * 60000,
       };
@@ -74,7 +76,7 @@ export class ChartUploaderComponent implements OnDestroy {
 
     // Add export menu
     am5plugins_exporting.Exporting.new(this.root, {
-      menu: am5plugins_exporting.ExportingMenu.new(this.root, {})
+      menu: am5plugins_exporting.ExportingMenu.new(this.root, {}),
     });
 
     switch (this.chartType) {
@@ -103,13 +105,18 @@ export class ChartUploaderComponent implements OnDestroy {
       })
     );
 
-    chart.set("scrollbarX", am5.Scrollbar.new(this.root, { orientation: "horizontal" }));
+    chart.set(
+      'scrollbarX',
+      am5.Scrollbar.new(this.root, { orientation: 'horizontal' })
+    );
 
     const xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(this.root, {
         categoryField: 'category',
         renderer: am5xy.AxisRendererX.new(this.root, {}),
-        tooltip: am5.Tooltip.new(this.root, {}),
+        tooltip: am5.Tooltip.new(this.root, {
+          labelText: '{valueY}',
+        }),
       })
     );
 
@@ -119,7 +126,7 @@ export class ChartUploaderComponent implements OnDestroy {
         min: 0,
       })
     );
-
+    //column series for vertical bars
     const series = chart.series.push(
       am5xy.ColumnSeries.new(this.root, {
         name: 'Bar Series',
@@ -136,8 +143,16 @@ export class ChartUploaderComponent implements OnDestroy {
     let legend = chart.children.push(am5.Legend.new(this.root, {}));
     legend.data.setAll(chart.series.values);
 
-    xAxis.data.setAll(data);
-    series.data.setAll(data);
+    xAxis.data.setAll(data); //tells the X-axis which category names to display.
+    series.data.setAll(data); //tells the bars how tall to be.
+    
+    series.events.once('datavalidated', () => {
+      const firstBullet = series.bulletsContainer.children.getIndex(0);
+      if (firstBullet) {
+        firstBullet.get('tooltip')?.show();
+      }
+    });
+
     series.appear(1000);
     chart.appear(1000, 100);
   }
@@ -153,7 +168,10 @@ export class ChartUploaderComponent implements OnDestroy {
       })
     );
 
-    chart.set("scrollbarX", am5.Scrollbar.new(this.root, { orientation: "horizontal" }));
+    chart.set(
+      'scrollbarX',
+      am5.Scrollbar.new(this.root, { orientation: 'horizontal' })
+    );
 
     const xAxis = chart.xAxes.push(
       am5xy.DateAxis.new(this.root, {

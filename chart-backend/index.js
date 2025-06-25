@@ -1,15 +1,15 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
+const fs = require('fs'); //file system module
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
-app.use(express.json()); // 👈 to parse JSON bodies
+app.use(express.json()); // to parse JSON bodies
 
 // Show a message at root
 app.get('/', (req, res) => {
-  res.send('🎉 Welcome to the Chart Backend!');
+  res.send('Welcome to the Chart Backend!');
 });
 
 // GET: Send chart data
@@ -22,7 +22,7 @@ app.get('/data', (req, res) => {
   }
 });
 
-// ✅ POST: Receive new chart data from Angular
+// POST: Receive new chart data from Angular
 app.post('/data', (req, res) => {
   const newData = req.body;
   try {
@@ -34,5 +34,5 @@ app.post('/data', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(` Server running at http://localhost:${PORT}`);
 });
