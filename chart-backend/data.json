@@ -1,2 +1,7 @@
-
-[{"country": "USA", "population": 331000000}, {"country": "India", "population": 1380000000}]
+[
+  {"product": "Gaming Console", "sales": 2500, "timestamp": 1672531200000, "category_id": 1},
+  {"product": "Smartphone", "sales": 4200, "timestamp": 1675209600000, "category_id": 2},
+  {"product": "Headphones", "sales": 1800, "timestamp": 1677628800000, "category_id": 3},
+  {"product": "Smart TV", "sales": 3100, "timestamp": 1680307200000, "category_id": 1},
+  {"product": "Fitness Tracker", "sales": 1600, "timestamp": 1682899200000, "category_id": 4}
+]
