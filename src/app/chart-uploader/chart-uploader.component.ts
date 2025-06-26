@@ -233,7 +233,7 @@ export class ChartUploaderComponent implements OnDestroy {
 
     const xAxis = chart.xAxes.push(
       am5xy.DateAxis.new(this.root, {
-        baseInterval: { timeUnit: 'minute', count: 1 },
+        baseInterval: { timeUnit: 'minute', count: 1 }, //time granularity
         renderer: am5xy.AxisRendererX.new(this.root, {
           minGridDistance: 50,
         }),
@@ -309,7 +309,7 @@ export class ChartUploaderComponent implements OnDestroy {
   drawPieChart(data: any[]) {
     const chart = this.root.container.children.push(
       am5percent.PieChart.new(this.root, {
-        endAngle: 270,
+        endAngle: 270, //??
       })
     );
 
