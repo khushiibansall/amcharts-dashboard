@@ -1,10 +1,2 @@
-[
-  {
-    "category": "Item 1",
-    "timestamp": 1719218400000
-  },
-  {
-    "category": "Item 2",
-    "timestamp": 1719222000000
-  }
-]
+
+[{"country": "USA", "population": 331000000}, {"country": "India", "population": 1380000000}]

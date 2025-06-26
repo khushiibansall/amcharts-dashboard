@@ -21,12 +21,13 @@ export class ChartUploaderComponent implements OnDestroy {
 
   chartType = 'bar'; // default chart type
   jsonInput: string = '';
-  processedData: any[] = [];
+  processedData: any[] = []; //stores normalized chart data
 
   constructor(private http: HttpClient) {
     this.fetchChartData();
   }
 
+  //makes the GET req to fetch
   fetchChartData() {
     this.http.get<any[]>(this.apiUrl).subscribe({
       next: (data) => {
@@ -41,29 +42,87 @@ export class ChartUploaderComponent implements OnDestroy {
     this.createChart(this.processedData);
   }
 
-  submitData() {
-    try {
-      const parsed = JSON.parse(this.jsonInput); //convert it into a js obj
-      const normalized = this.normalizeData(parsed);
-      this.http.post(this.apiUrl, normalized).subscribe({
-        //sends to backenf
-        next: () => {
-          alert('Data uploaded successfully!');
-          this.fetchChartData();
-        },
-        error: () => alert(' Failed to upload data'),
-      });
-    } catch (err) {
-      alert(' Invalid JSON format');
+  // submitData() {
+  //   try {
+  //     const parsed = JSON.parse(this.jsonInput);
+  //     const normalized = this.normalizeData(parsed);
+  //     this.http.post(this.apiUrl, normalized).subscribe({
+  //       next: () => {
+  //         alert('Data uploaded successfully!');
+  //         this.fetchChartData();
+  //       },
+  //       error: () => alert('Failed to upload data'),
+  //     });
+  //   } catch (err) {
+  //     alert('Invalid JSON format');
+  //   }
+  // }
+
+  /**
+   * this dynamically detects which fields should be used for category and value and returns an object with the detected field names
+   */
+  detectFields(data: any[]): { categoryField: string; valueField: string } {
+    if (!data || data.length === 0) {
+      return { categoryField: 'category', valueField: 'value' };
     }
+
+    const firstItem = data[0];
+    const keys = Object.keys(firstItem); // extract all column names
+
+    const categoryFieldCandidates = [
+      'category', 'name', 'label', 'country', 'region', 
+      'product', 'type', 'group', 'item', 'title'
+    ];
+
+    const valueFieldCandidates = [
+      'value', 'amount', 'count', 'quantity', 'price', 
+      'sales', 'revenue', 'total', 'score', 'rating'
+    ];
+
+    let categoryField = categoryFieldCandidates.find(candidate => 
+      keys.includes(candidate)
+    );
+
+    // if no is match found we use the first string field
+    if (!categoryField) {
+      categoryField = keys.find(key => 
+        typeof firstItem[key] === 'string'
+      ) || keys[0];
+    }
+
+    // finding value field
+    let valueField = valueFieldCandidates.find(candidate => 
+      keys.includes(candidate)
+    );
+
+    // If no match found, use the first number field
+    if (!valueField) {
+      valueField = keys.find(key => 
+        typeof firstItem[key] === 'number' && key !== categoryField
+      );
+    }
+
+    // Fallback if still no value field found
+    if (!valueField) {
+      valueField = keys.find(key => key !== categoryField) || 'value';
+    }
+
+    return {
+      categoryField: categoryField || 'category',
+      valueField: valueField || 'value'
+    };
   }
 
+//  { category, value, timestamp } 
   normalizeData(data: any[]): any[] {
+    if (!data || data.length === 0) return [];
+
+    const { categoryField, valueField } = this.detectFields(data);
+
     return data.map((item, i) => {
       return {
-        category:
-          item.category || item.country || item.label || `Item ${i + 1}`,
-        value: item.value,
+        category: item[categoryField] || `Item ${i + 1}`,
+        value: Number(item[valueField]) || 0,
         timestamp: item.timestamp || Date.now() + i * 60000,
       };
     });
@@ -123,7 +182,7 @@ export class ChartUploaderComponent implements OnDestroy {
         min: 0,
       })
     );
-    //column series for vertical bars
+
     const series = chart.series.push(
       am5xy.ColumnSeries.new(this.root, {
         name: 'Bar Series',
@@ -133,7 +192,7 @@ export class ChartUploaderComponent implements OnDestroy {
         categoryXField: 'category',
       })
     );
-    // Configure tooltip for the series
+
     series.set(
       'tooltip',
       am5.Tooltip.new(this.root, {
@@ -141,7 +200,6 @@ export class ChartUploaderComponent implements OnDestroy {
       })
     );
 
-    // Configure column template for better interaction
     series.columns.template.setAll({
       tooltipText: 'Category: {categoryX}\nValue: {valueY}',
       cursorOverStyle: 'pointer',
@@ -150,8 +208,8 @@ export class ChartUploaderComponent implements OnDestroy {
     let legend = chart.children.push(am5.Legend.new(this.root, {}));
     legend.data.setAll(chart.series.values);
 
-    xAxis.data.setAll(data); //tells the X-axis which category names to display.
-    series.data.setAll(data); //tells the bars how tall to be.
+    xAxis.data.setAll(data);
+    series.data.setAll(data);
 
     series.appear(1000);
     chart.appear(1000, 100);
@@ -195,11 +253,9 @@ export class ChartUploaderComponent implements OnDestroy {
         yAxis,
         valueYField: 'value',
         valueXField: 'timestamp',
-        // connect: false,
       })
     );
 
-    // Configure tooltip for the series with better formatting
     series.set(
       'tooltip',
       am5.Tooltip.new(this.root, {
@@ -208,7 +264,6 @@ export class ChartUploaderComponent implements OnDestroy {
       })
     );
 
-    // Add bullets to make hover interaction easier
     const bullet = series.bullets.push(() => {
       const bulletCircle = am5.Circle.new(this.root, {
         radius: 5,
@@ -221,12 +276,10 @@ export class ChartUploaderComponent implements OnDestroy {
       });
     });
 
-    // Configure stroke for the line
     series.strokes.template.setAll({
       strokeWidth: 3,
     });
 
-    // Add cursor for better interaction
     chart.set(
       'cursor',
       am5xy.XYCursor.new(this.root, {
@@ -237,10 +290,9 @@ export class ChartUploaderComponent implements OnDestroy {
     let legend = chart.children.push(am5.Legend.new(this.root, {}));
     legend.data.setAll(chart.series.values);
 
-    // Prepare data with category for better tooltip display
     const processedData = data.map((item) => ({
       ...item,
-      categoryX: item.category, // Add categoryX for tooltip
+      categoryX: item.category,
     }));
 
     series.fills.template.setAll({
