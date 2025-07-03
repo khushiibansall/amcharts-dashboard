@@ -133,7 +133,7 @@ export class ChartUploaderComponent implements OnDestroy {
     this.root = am5.Root.new('chartdiv');
     this.root.setThemes([am5themes_Animated.new(this.root)]);
 
-    // Add export menu
+    // add export menu , for download and all 
     am5plugins_exporting.Exporting.new(this.root, {
       menu: am5plugins_exporting.ExportingMenu.new(this.root, {}),
     });
